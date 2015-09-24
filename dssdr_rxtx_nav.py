@@ -435,7 +435,7 @@ class my_top_block(grc_wxgui.top_block_gui):
 			value=self._coding_method,
 			callback=self.setDownCodingMethod,
 			label="Coding",
-			choices=['None', 'RS'],
+			choices=['None', 'RS', 'Turbo 1/2', 'Turbo 1/3', 'Turbo 1/4', 'Turbo 1/6'],
 			labels=[],
 			style=wx.RA_HORIZONTAL,
 		)

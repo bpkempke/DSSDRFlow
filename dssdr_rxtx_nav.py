@@ -223,7 +223,7 @@ class my_top_block(grc_wxgui.top_block_gui):
 			server=True
 		)
 	elif options.fromfile == True:
-		self.u2 = blocks.file_meta_source(gr.sizeof_gr_complex, "iq_in.dat", True)
+		self.u2 = blocks.file_meta_source("iq_in.dat")
 		self.u = blocks.throttle(gr.sizeof_gr_complex*1, self._samples_per_second)
 	elif options.frombitlog == True:
 		self.u3 = blocks.file_source(gr.sizeof_char, "bitstream_recording.in", True)

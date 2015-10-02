@@ -245,6 +245,8 @@ class my_top_block(grc_wxgui.top_block_gui):
 
 	if options.tofile == True:
 		self.u_tx = blocks.file_meta_sink(gr.sizeof_gr_complex, "iq_out.dat", self._up_samples_per_second)
+	elif options.tonull == True:
+		self.u_tx = blocks.null_sink(gr.sizeof_gr_complex)
 	else:
 		self.u_tx = uhd.usrp_sink(device_addr=options.args, stream_args=uhd.stream_args('fc32'))
 		self.u_tx.set_clock_source("external")
@@ -1201,6 +1203,8 @@ def main():
 			help="read iq data from file")
 	parser.add_option("","--tofile", action="store_true", default=False,
 			help="store iq data to file")
+	parser.add_option("","--tonull", action="store_true", default=False,
+			help="ignore all TX data")
 	parser.add_option("","--read_fifo", default=None,
 			help="FIFO to read commands from (for interfacing to GNURadio)")
 	parser.add_option("","--write_fifo", default=None,

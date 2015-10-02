@@ -1087,7 +1087,7 @@ class my_top_block(grc_wxgui.top_block_gui):
 	self.sequential_range_rx.queueSequene(args[0], args[8], args[9], args[2], args[3], args[4], args[5], args[6], args[7])
 	return True
 
-    def getASMPattern(self, coding_method, coding_rate):
+    def getASMPattern(self, coding_method):
 	if coding_method == 'None':
 		asm_pattern = '\x1A\xCF\xFC\x1D'
 	elif coding_method == 'CONV':
@@ -1096,20 +1096,18 @@ class my_top_block(grc_wxgui.top_block_gui):
 		asm_pattern = '\x1A\xCF\xFC\x1D'
 	elif coding_method == 'CC':
 		asm_pattern = '\x1A\xCF\xFC\x1D'
-	elif coding_method == 'Turbo':
-		if coding_rate == '1/2':
-			asm_pattern = '\x03\x47\x76\xC7\x27\x28\x95\xB0'
-		elif coding_rate == '1/3':
-			asm_pattern = '\x25\xD5\xC0\xCE\x89\x90\xF6\xC9\x46\x1B\xF7\x9C'
-		elif coding_rate == '1/4':
-			asm_pattern = '\x03\x47\x76\xC7\x27\x28\x95\xB0\xFC\xB8\x89\x38\xD8\xD7\x6A\x4F'
-		elif coding_rate == '1/6':
-			asm_pattern = '\x25\xD5\xC0\xCE\x89\x90\xF6\xC9\x46\x1B\xF7\x9C\xDA\x2A\x3F\x31\x76\x6F\x09\x36\xB9\xE4\x08\x63'
-	elif coding_method == 'LDPC':
-		if coding_rate == '7/8':
-			asm_pattern = '\x03\x47\x76\xC7\x27\x28\x95\xB0'
-		elif coding_rate == '1/2' or coding_rate == '2/3' or coding_rate == '4/5':
-			asm_pattern = '\x25\xD5\xC0\xCE\x89\x90\xF6\xC9\x46\x1B\xF7\x9C'
+	elif coding_method == 'Turbo 1/2':
+		asm_pattern = '\x03\x47\x76\xC7\x27\x28\x95\xB0'
+	elif coding_method == 'Turbo 1/3':
+		asm_pattern = '\x25\xD5\xC0\xCE\x89\x90\xF6\xC9\x46\x1B\xF7\x9C'
+	elif coding_method == 'Turbo 1/4':
+		asm_pattern = '\x03\x47\x76\xC7\x27\x28\x95\xB0\xFC\xB8\x89\x38\xD8\xD7\x6A\x4F'
+	elif coding_method == 'Turbo 1/6':
+		asm_pattern = '\x25\xD5\xC0\xCE\x89\x90\xF6\xC9\x46\x1B\xF7\x9C\xDA\x2A\x3F\x31\x76\x6F\x09\x36\xB9\xE4\x08\x63'
+	elif coding_method == 'LDPC 7/8':
+		asm_pattern = '\x03\x47\x76\xC7\x27\x28\x95\xB0'
+	elif coding_method == 'LDPC 1/2' or coding_method == 'LDPC 2/3' or coding_method == 'LDPC 4/5':
+		asm_pattern = '\x25\xD5\xC0\xCE\x89\x90\xF6\xC9\x46\x1B\xF7\x9C'
 	return asm_pattern
 
     def setASMThreshold(self,arg):
@@ -1118,13 +1116,14 @@ class my_top_block(grc_wxgui.top_block_gui):
 
     def setDownCodingMethod(self,arg):
 	self._coding_method = arg
-	self.asm_pattern = self.getASMPattern(self._coding_method, self._down_coding_rate)
+	self.asm_pattern = self.getASMPattern(self._coding_method)
 	self.soft_correlator.set_access_code(conv_packed_binary_string_to_1_0_string(self.asm_pattern))
+	print conv_packed_binary_string_to_1_0_string(self.asm_pattern)
 	self.tm_framer.setCodingMethod(self._coding_method)
 
     def setUpCodingMethod(self,arg):
 	self._up_coding_method = arg
-	self.up_asm_pattern = self.getASMPattern(self._up_coding_method, self._up_coding_rate)
+	self.up_asm_pattern = self.getASMPattern(self._up_coding_method)
 	self.pkt_gen.setCodingMethod(self._up_coding_method)
 	self.pkt_gen.setAccessCode(self.up_asm_pattern)
 

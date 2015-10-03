@@ -113,7 +113,7 @@ class my_top_block(grc_wxgui.top_block_gui):
 	self._up_sub_freq = 25e3
 	self._tm_len = 8920
 	self._up_tm_len = 8920
-	self._coding_method = 'None'
+	self._coding_method = options.coding_method
 	self._up_coding_method = 'None'
 	self._rs_i = 1
 	self._ccsds_channel = 38
@@ -735,7 +735,7 @@ class my_top_block(grc_wxgui.top_block_gui):
 		self.bit_recorder = blocks.file_sink(1, "bitstream_recording.out")
 
 
-	self.setDownCodingMethod("None")
+	self.setDownCodingMethod(self._coding_method)
 	self.setUpCodingMethod("None")
 	self.setDownBitrate(self._down_bitrate)
 	self.setUpBitrate(self._up_bitrate)
@@ -1193,6 +1193,8 @@ def main():
 	parser.add_option("-m", "--modulation", type="choice", choices=demods.keys(), 
 			default='psk',
 			help="Select modulation from: %s [default=%%default]" % (', '.join(demods.keys()),))
+	parser.add_option("", "--coding-method", type="string", default="None",
+			help="downlink coding method [default=%default]")
         parser.add_option("-a", "--args", type="string", default="fpga=usrp_b200_dssdr.bin",
                           help="UHD device address args [default=%default]")
 	parser.add_option("","--test", action="store_true", default=False,
@@ -1253,7 +1255,8 @@ def main():
 	# build the graph
 	tb = my_top_block(options)
 	tb.setupFlowgraph()
-	tb.resetScope()
+	if options.graphics == True:
+		tb.resetScope()
 	
 	#r = gr.enable_realtime_scheduling()
 	#if r != gr.RT_OK:
@@ -1263,8 +1266,8 @@ def main():
 	tb.Wait()         # wait for it to finish
 
 if __name__ == '__main__':
-#	print 'Blocked waiting for GDB attach (pid = %d)' % (os.getpid(),)
-#	raw_input('Press Enter to continue: ')
+	print 'Blocked waiting for GDB attach (pid = %d)' % (os.getpid(),)
+	raw_input('Press Enter to continue: ')
 	try:
 		main()
 	except KeyboardInterrupt:

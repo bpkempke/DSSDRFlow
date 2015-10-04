@@ -395,7 +395,7 @@ class my_top_block(grc_wxgui.top_block_gui):
 			parent=self.nb0.GetPage(0).GetWin(),
 			value=self._down_bitrate,
 			callback=self.setDownBitrate,
-			label="Bitrate",
+			label="Symbol Rate",
 			converter=forms.float_converter(),
 		)
 		self.nb0.GetPage(0).Add(self._bitrate_text_box)
@@ -1283,8 +1283,8 @@ def main():
 	tb.Wait()         # wait for it to finish
 
 if __name__ == '__main__':
-	print 'Blocked waiting for GDB attach (pid = %d)' % (os.getpid(),)
-	raw_input('Press Enter to continue: ')
+	#print 'Blocked waiting for GDB attach (pid = %d)' % (os.getpid(),)
+	#raw_input('Press Enter to continue: ')
 	try:
 		main()
 	except KeyboardInterrupt:

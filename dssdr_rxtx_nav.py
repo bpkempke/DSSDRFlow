@@ -520,7 +520,7 @@ class my_top_block(grc_wxgui.top_block_gui):
 		self.nb0.GetPage(0).Add(self._uhd_gain_slider)
 
 		#TX chain GUI components
-		if options.test == True or options.tofile == True:
+		if options.test == True or options.tofile == True or options.tonull == True:
 			gtxlow = 0.0
 			gtxhigh = 1.0
 			cur_gtx = 0.5
@@ -922,7 +922,7 @@ class my_top_block(grc_wxgui.top_block_gui):
 	if self.options.test == False and self.options.fromfile == False and self.options.frombitlog == False:
 		self._tune_request = uhd.tune_request(down_freq-self._dssdr_mixer_freq+self._if_freq, self._uhd_carrier_offset)
 		self.u.set_center_freq(self._tune_request)
-	if self.options.test == False and self.options.tofile == False:
+	if self.options.test == False and self.options.tofile == False and self.options.tonull == False:
 		self._tune_request = uhd.tune_request(self._dssdr_mixer_freq-up_freq+self._if_freq, self._uhd_carrier_offset)
 		self.u_tx.set_center_freq(self._tune_request)
 	#TODO: Implement LDO logic!
@@ -995,7 +995,7 @@ class my_top_block(grc_wxgui.top_block_gui):
 	self.retune()
 
     def setUpGain(self,arg):
-	if self.options.test == False and self.options.tofile == False:
+	if self.options.test == False and self.options.tofile == False and self.options.tonull == False:
 		self.u_tx.set_gain(float(arg))
 
     def setDownGain(self,arg):

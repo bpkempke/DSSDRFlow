@@ -127,6 +127,7 @@ class my_top_block(grc_wxgui.top_block_gui):
 	self._up_coding_rate = '1'
 	self._down_coding_rate = '1'
 	self._down_conv_en = "False"
+	self._down_randomizer_en = options.down_randomizer_en
 	self._up_conv_en = "False"
 	self._up_idle_sequence = "\\x55"
 	self._down_default_gain = 64
@@ -451,6 +452,15 @@ class my_top_block(grc_wxgui.top_block_gui):
 			false="False",
 		)
 		self.nb0.GetPage(0).Add(self._down_conv_check_box)
+		self._down_randomizer_check_box = forms.check_box(
+			parent=self.nb0.GetPage(0).GetWin(),
+			value=self._down_randomizer_en,
+			callback=self.setDownRandomizerEn,
+			label="De-randomizer",
+			true=True,
+			false=False,
+		)
+		self.nb0.GetPage(0).Add(self._down_randomizer_check_box)
 		self._pktlen_text_box = forms.text_box(
 			parent=self.nb0.GetPage(0).GetWin(),
 			value=self._asm_threshold,
@@ -703,6 +713,7 @@ class my_top_block(grc_wxgui.top_block_gui):
 	#Data framing
 	self.soft_correlator = sdrp.correlate_soft_access_tag_ff(conv_packed_binary_string_to_1_0_string('\x1A\xCF\xFC\x1D'), self._asm_threshold, "asm_corr")
 	self.conv_decoder = sdrp.ccsds_tm_conv_decoder("asm_corr")
+	self.de_randomizer = sdrp.ccsds_tm_derandomizer("asm_corr")
 	self.tm_framer = sdrp.ccsds_tm_framer(self._tm_packet_id, self._timestamp_id, "asm_corr", "rx_time", self._down_bitrate)
 	self.tm_framer.setFrameLength(self._tm_len)
 
@@ -744,6 +755,7 @@ class my_top_block(grc_wxgui.top_block_gui):
 	self.setDownConvEn(self._down_conv_en)
 	self.setUpConvEn(self._up_conv_en)
 	self.setUpIdleSequence(self._up_idle_sequence)
+	self.setDownRandomizerEn(self._down_randomizer_en)
 
 	#Connection to outside world
 	self.socket_pdu = blocks.socket_pdu("TCP_SERVER", "127.0.0.1", "12902", 10000)
@@ -796,6 +808,10 @@ class my_top_block(grc_wxgui.top_block_gui):
 	self._down_conv_en = (down_conv_en == 'True')
 	self.conv_decoder.setConvEn(self._down_conv_en)
 	self.soft_correlator.set_conv_en(self._down_conv_en)
+
+    def setDownRandomizerEn(self, down_randomizer_en):
+	self._down_randomizer_en = down_randomizer_en
+	self.de_randomizer.setDerandomizerEn(self._down_randomizer_en)
 
     def setUpConvEn(self, up_conv_en):
 	self._up_conv_en = (up_conv_en == 'True')
@@ -877,7 +893,7 @@ class my_top_block(grc_wxgui.top_block_gui):
 		self.connect(self.u, self.file_sink)
 
 	#This section of flowgraph remains the same regardless of whether we're running from bitlog or USRP
-	self.connect(self.soft_correlator, self.conv_decoder, self.tm_framer)
+	self.connect(self.soft_correlator, self.conv_decoder, self.de_randomizer, self.tm_framer)
 
 	if self.options.bitlog:
 		self.connect(self.data_sync, self.bit_slicer, self.bit_recorder)
@@ -1120,7 +1136,6 @@ class my_top_block(grc_wxgui.top_block_gui):
 	self._coding_method = arg
 	self.asm_pattern = self.getASMPattern(self._coding_method)
 	self.soft_correlator.set_access_code(conv_packed_binary_string_to_1_0_string(self.asm_pattern))
-	print conv_packed_binary_string_to_1_0_string(self.asm_pattern)
 	self.tm_framer.setCodingMethod(self._coding_method)
 
     def setUpCodingMethod(self,arg):
@@ -1199,6 +1214,8 @@ def main():
                           help="UHD device address args [default=%default]")
 	parser.add_option("","--test", action="store_true", default=False,
 			help="specify test (make TCP socket server instead of USRP)")
+	parser.add_option("","--down-randomizer-en", action="store_true", default=False,
+			help="enable downlink randomizer")
 	parser.add_option("","--graphics", action="store_true", default=False,
 			help="enable graphics")
 	parser.add_option("","--fromfile", action="store_true", default=False,

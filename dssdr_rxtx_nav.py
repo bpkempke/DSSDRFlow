@@ -1150,8 +1150,12 @@ class my_top_block(grc_wxgui.top_block_gui):
 	self._up_subcarrier = arg
 	if self._up_subcarrier == 'Square':
 		self.subcarrier_mixer_source_tx.set_waveform(analog.GR_SQR_WAVE)
+		self.subcarrier_mixer_source_tx.set_amplitude(2.0)
+		self.subcarrier_mixer_source_tx.set_offset(-1.0)
 	else:
 		self.subcarrier_mixer_source_tx.set_waveform(analog.GR_SIN_WAVE)
+		self.subcarrier_mixer_source_tx.set_amplitude(1.0)
+		self.subcarrier_mixer_source_tx.set_offset(0.0)
 
     def setConvR(self,arg):
 	return True

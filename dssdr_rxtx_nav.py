@@ -115,13 +115,14 @@ class my_top_block(grc_wxgui.top_block_gui):
 	self._up_tm_len = 8920
 	self._coding_method = options.coding_method
 	self._up_coding_method = 'None'
+	self._up_subcarrier = 'Square'
 	self._rs_i = 1
 	self._ccsds_channel = 38
 	self._uhd_carrier_offset = 10e3
 	self._turn_div = 749
 	self._turn_mult = 880
 	self._modulation_index = 'pi/3'
-	self._up_modulation_index = 'pi/3'
+	self._up_modulation_index = 1.047
 	self._max_carrier_offset = 0.1
 	self._dssdr_mixer_freq = options.rf_freq
 	self._up_coding_rate = '1'
@@ -583,14 +584,12 @@ class my_top_block(grc_wxgui.top_block_gui):
 			converter=forms.str_converter(),
 		)
 		self.nb0.GetPage(1).Add(self._up_data_text_box)
-		self._up_mod_index_chooser = forms.radio_buttons(
+		self._up_mod_index_chooser = forms.text_box(
 			parent=self.nb0.GetPage(1).GetWin(),
 			value=self._up_modulation_index,
 			callback=self.setUpModulationIndex,
 			label="Uplink Modulation Index",
-			choices=['pi/2', 'pi/3'],
-			labels=[],
-			style=wx.RA_HORIZONTAL,
+			converter=forms.float_converter(),
 		)
 		self.nb0.GetPage(1).Add(self._up_mod_index_chooser)
 		self._up_coding_chooser = forms.radio_buttons(
@@ -603,6 +602,16 @@ class my_top_block(grc_wxgui.top_block_gui):
 			style=wx.RA_HORIZONTAL,
 		)
 		self.nb0.GetPage(1).Add(self._up_coding_chooser)
+		self._subcarrier_chooser = forms.radio_buttons(
+			parent=self.nb0.GetPage(1).GetWin(),
+			value=self._up_subcarrier,
+			callback=self.setUpSubcarrier,
+			label="Subcarrier Type",
+			choices=['Square','Sine'],
+			labels=[],
+			style=wx.RA_HORIZONTAL,
+		)
+		self.nb0.GetPage(1).Add(self._subcarrier_chooser)
 		self._up_conv_check_box = forms.check_box(
 			parent=self.nb0.GetPage(1).GetWin(),
 			value=self._up_conv_en,
@@ -725,20 +734,17 @@ class my_top_block(grc_wxgui.top_block_gui):
 
 	#TX path in flowgraph
 	self.pkt_gen_msgq = gr.msg_queue(10)
-        self.pkt_gen = sdrp.ccsds_tm_tx(self._tm_packet_id, self._timestamp_id, 0.1, 16, self.pkt_gen_msgq)
+        self.pkt_gen = sdrp.ccsds_tm_tx(self._tm_packet_id, self._timestamp_id, 1.0, 16, self.pkt_gen_msgq)
 	self.conj = blocks.conjugate_cc()
-
-	#optional carrier supression
-	self.carrier_adder = blocks.add_const_vcc((0.1+0.0j, ))
 
 	#Sweep generator for transponder lock
 	self.sweep_gen = sdrp.sweep_generator_cc(self._up_samples_per_second)
 
 	# DSSDR subcarrier mixer (either 25 kHz or 0 kHz depending on baud rate)
-	self.up_subcarrier_mixer = blocks.multiply_cc()
-	self.subcarrier_mixer_source_tx = analog.sig_source_f(self._up_samples_per_second, analog.GR_SQR_WAVE, 25e3, 1.0, -0.5)
-	self.sub_to_complex = blocks.float_to_complex(1)
-	self.sub_real_source = analog.sig_source_f(0, analog.GR_CONST_WAVE, 0, 0, 0)
+	self.up_subcarrier_mixer = blocks.multiply_ff()
+	self.subcarrier_mixer_source_tx = analog.sig_source_f(self._up_samples_per_second, analog.GR_SQR_WAVE, 25e3, 2.0, -1.0)
+	self.phase_mod_tx = analog.phase_modulator_fc()
+	self.tx_attenuator = blocks.multiply_const_cc((0.1+0.0j, ))
 
 	#Add in bit recorder if needed
 	if self.options.bitlog:
@@ -748,6 +754,7 @@ class my_top_block(grc_wxgui.top_block_gui):
 
 	self.setDownCodingMethod(self._coding_method)
 	self.setUpCodingMethod("None")
+	self.setUpSubcarrier(self._up_subcarrier)
 	self.setDownBitrate(self._down_bitrate)
 	self.setUpBitrate(self._up_bitrate)
 	self.setDownModulationIndex(self._modulation_index)
@@ -871,10 +878,7 @@ class my_top_block(grc_wxgui.top_block_gui):
 
     def setUpModulationIndex(self, mod_idx):
 	self._up_modulation_index = mod_idx
-	if self._up_modulation_index == 'pi/2':
-		self.carrier_adder.set_k((0.0+0.0j, ))
-	else:
-		self.carrier_adder.set_k((0.1+0.0j, ))
+	self.phase_mod_tx.set_sensitivity(mod_idx)
 
     def setupFlowgraph(self):
 	self._current_scope_block = None
@@ -900,10 +904,8 @@ class my_top_block(grc_wxgui.top_block_gui):
 
 	#TX chain
 	self.connect(self.pkt_gen, (self.up_subcarrier_mixer,0))
-	self.connect(self.subcarrier_mixer_source_tx, (self.sub_to_complex,1))
-	self.connect(self.sub_real_source, (self.sub_to_complex,0))
-	self.connect(self.sub_to_complex, (self.up_subcarrier_mixer,1))
-	self.connect(self.up_subcarrier_mixer, self.carrier_adder, self.sweep_gen, self.conj, self.u_tx)
+	self.connect(self.subcarrier_mixer_source_tx, (self.up_subcarrier_mixer,1))
+	self.connect(self.up_subcarrier_mixer, self.phase_mod_tx, self.tx_attenuator, self.sweep_gen, self.conj, self.u_tx)
 
     def resetScope(self):
 	self.scope_chooser._radio_buttons.SetSelection(0)
@@ -1143,6 +1145,13 @@ class my_top_block(grc_wxgui.top_block_gui):
 	self.up_asm_pattern = self.getASMPattern(self._up_coding_method)
 	self.pkt_gen.setCodingMethod(self._up_coding_method)
 	self.pkt_gen.setAccessCode(self.up_asm_pattern)
+
+    def setUpSubcarrier(self,arg):
+	self._up_subcarrier = arg
+	if self._up_subcarrier == 'Square':
+		self.subcarrier_mixer_source_tx.set_waveform(analog.GR_SQR_WAVE)
+	else
+		self.subcarrier_mixer_source_tx.set_waveform(analog.GR_SIN_WAVE)
 
     def setConvR(self,arg):
 	return True

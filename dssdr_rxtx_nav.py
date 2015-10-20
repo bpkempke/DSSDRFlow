@@ -743,8 +743,8 @@ class my_top_block(grc_wxgui.top_block_gui):
 	# DSSDR subcarrier mixer (either 25 kHz or 0 kHz depending on baud rate)
 	self.up_subcarrier_mixer = blocks.multiply_ff()
 	self.subcarrier_mixer_source_tx = analog.sig_source_f(self._up_samples_per_second, analog.GR_SQR_WAVE, 25e3, 2.0, -1.0)
-	self.phase_mod_tx = analog.phase_modulator_fc()
-	self.tx_attenuator = blocks.multiply_const_cc((0.1+0.0j, ))
+	self.phase_mod_tx = analog.phase_modulator_fc(self._up_modulation_index)
+	self.tx_attenuator = blocks.multiply_const_cc((0.1+0.0j))
 
 	#Add in bit recorder if needed
 	if self.options.bitlog:
@@ -1150,7 +1150,7 @@ class my_top_block(grc_wxgui.top_block_gui):
 	self._up_subcarrier = arg
 	if self._up_subcarrier == 'Square':
 		self.subcarrier_mixer_source_tx.set_waveform(analog.GR_SQR_WAVE)
-	else
+	else:
 		self.subcarrier_mixer_source_tx.set_waveform(analog.GR_SIN_WAVE)
 
     def setConvR(self,arg):

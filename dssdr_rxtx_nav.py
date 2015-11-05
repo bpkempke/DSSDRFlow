@@ -765,11 +765,12 @@ class my_top_block(grc_wxgui.top_block_gui):
 	self.setDownRandomizerEn(self._down_randomizer_en)
 
 	#Connection to outside world
-	self.socket_pdu = blocks.socket_pdu("TCP_SERVER", "127.0.0.1", "12902", 10000)
+	self.socket_pdu_out = blocks.socket_pdu("TCP_SERVER", "0.0.0.0", "12902", 10000)
+	self.socket_pdu_in = blocks.socket_pdu("TCP_SERVER", "0.0.0.0", "12903", 10000)
 	self.sdrp_interpreter = sdrp.sdrp_packet_interpreter()
 	self.msg_connect(self.tm_framer, "tm_frame_out", self.sdrp_interpreter, "sdrp_pdu_in")
-	self.msg_connect(self.sdrp_interpreter, "socket_pdu_out", self.socket_pdu, "pdus")
-	self.msg_connect(self.socket_pdu, "pdus", self.sdrp_interpreter, "socket_pdu_in")
+	self.msg_connect(self.sdrp_interpreter, "socket_pdu_out", self.socket_pdu_out, "pdus")
+	self.msg_connect(self.socket_pdu_in, "pdus", self.sdrp_interpreter, "socket_pdu_in")
 	self.msg_connect(self.sdrp_interpreter,"sdrp_pdu_out", self.pkt_gen, "ccsds_tx_msg_in")
 
 	if options.test == False and options.fromfile == False and options.frombitlog == False:

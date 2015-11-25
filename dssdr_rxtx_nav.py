@@ -129,6 +129,7 @@ class my_top_block(grc_wxgui.top_block_gui):
 	self._down_coding_rate = '1'
 	self._down_conv_en = "False"
 	self._down_randomizer_en = options.down_randomizer_en
+	self._down_manchester_en = options.down_manchester_en
 	self._up_conv_en = "False"
 	self._up_idle_sequence = "\\x55"
 	self._down_default_gain = 64
@@ -462,6 +463,15 @@ class my_top_block(grc_wxgui.top_block_gui):
 			false=False,
 		)
 		self.nb0.GetPage(0).Add(self._down_randomizer_check_box)
+		self._down_manchester_check_box = forms.check_box(
+			parent=self.nb0.GetPage(0).GetWin(),
+			value=self._down_manchester_en,
+			callback=self.setDownManchesterEn,
+			label="Manchester Decode",
+			true=True,
+			false=False,
+		)
+		self.nb0.GetPage(0).Add(self._down_manchester_check_box)
 		self._pktlen_text_box = forms.text_box(
 			parent=self.nb0.GetPage(0).GetWin(),
 			value=self._asm_threshold,
@@ -763,6 +773,7 @@ class my_top_block(grc_wxgui.top_block_gui):
 	self.setUpConvEn(self._up_conv_en)
 	self.setUpIdleSequence(self._up_idle_sequence)
 	self.setDownRandomizerEn(self._down_randomizer_en)
+	self.setDownManchesterEn(self._down_manchester_en)
 
 	#Connection to outside world
 	self.socket_pdu = blocks.socket_pdu("TCP_SERVER", "127.0.0.1", "12902", 10000)
@@ -819,6 +830,10 @@ class my_top_block(grc_wxgui.top_block_gui):
     def setDownRandomizerEn(self, down_randomizer_en):
 	self._down_randomizer_en = down_randomizer_en
 	self.de_randomizer.setDerandomizerEn(self._down_randomizer_en)
+
+    def setDownManchesterEn(self, down_manchester_en):
+	self._down_manchester_en = down_manchester_en
+	self.data_sync.setManchesterEn(self._down_manchester_en)
 
     def setUpConvEn(self, up_conv_en):
 	self._up_conv_en = (up_conv_en == 'True')
@@ -1229,6 +1244,8 @@ def main():
 			help="specify test (make TCP socket server instead of USRP)")
 	parser.add_option("","--down-randomizer-en", action="store_true", default=False,
 			help="enable downlink randomizer")
+	parser.add_option("","--down-manchester-en", action="store_true", default=False,
+			help="enable downlink manchester decoding")
 	parser.add_option("","--graphics", action="store_true", default=False,
 			help="enable graphics")
 	parser.add_option("","--fromfile", action="store_true", default=False,

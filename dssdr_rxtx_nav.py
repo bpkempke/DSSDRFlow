@@ -109,7 +109,7 @@ class my_top_block(grc_wxgui.top_block_gui):
 	self._up_bitrate = options.up_bitrate
 	self._up_samples_per_symbol = self._up_samples_per_second/self._up_bitrate
 	self._samples_per_symbol = self._samples_per_second/self._down_decim/self._down_bitrate
-	self._down_sub_freq = 25e3
+	self._down_sub_freq = options.down_sub_freq
 	self._up_sub_freq = 25e3
 	self._tm_len = 8920
 	self._up_tm_len = 8920
@@ -716,7 +716,7 @@ class my_top_block(grc_wxgui.top_block_gui):
 	self.turnaround_null = blocks.null_sink(gr.sizeof_float)
 
 	# PLL and associated carrier for tracking carrier frequency if residual carrier is used
-	self.carrier_tracking = sdrp.pll_freq_acq_cc(math.pi/200, math.pi, -math.pi, int(options.acq_samples))
+	self.carrier_tracking = sdrp.pll_freq_acq_cc(math.pi/2000, math.pi, -math.pi, int(options.acq_samples))
 	self.imag_to_float = blocks.complex_to_imag()
 
 	#Suppressed carrier requires costas after subcarrier mixer
@@ -1260,6 +1260,8 @@ def main():
 			help="FIFO to write command responses to (for interfacing to GNURadio)")
 	parser.add_option("", "--rx-freq", type="eng_float", default=7.2e9,
 			help="set RX frequency [default=%default]")
+	parser.add_option("", "--down-sub-freq", type="eng_float", default=25e3,
+			help="set downlink subcarrier frequency [default=%default]")
 	parser.add_option("", "--excess-bw", type="float", default=_def_excess_bw,
 			help="set RRC excess bandwith factor [default=%default]")
 	parser.add_option("", "--freq-bw", type="float", default=_def_freq_bw,

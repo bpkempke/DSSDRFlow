@@ -41,7 +41,7 @@ NEW PROCESS FOR UBUNTU 15.04
    + sudo ldconfig
  - install custom UHD build
    + cd ~/repos/
-   + git clone https://github.com/bpkempke/uhd.git uhd-dssdr
+   + git clone https://github.com/bpkempke/uhd-dssdr
    + cd uhd-dssdr
    + git checkout dssdr
    + cd host

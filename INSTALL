@@ -1,0 +1,52 @@
+This document describes the process followed to create a machine suitable for use with DSSDR.  
+PC hardware currently used is as follows:
+
+Dell PowerEdge R220:
+ - Disable on-board graphics in BIOS settings
+
+Dell Optiplex 755 Ultra SFF:
+http://www.newegg.com/Product/Product.aspx?Item=N82E16883155702
+
+NEW PROCESS FOR UBUNTU 15.04
+ - MAKE SURE UBUNTU 15.04 IS UP-TO-DATE FIRST BEFORE COMMENCING...
+ - mkdir ~/repos
+ - mkdir ~/repos/gnuradio
+ - download build-gnuradio script
+   + cd ~/repos/gnuradio
+   + wget http://www.sbrac.org/files/build-gnuradio && chmod a+x ./build-gnuradio && yes | ./build-gnuradio --verbose -ja
+     ### NOTE: If there are install issues on 15.04, refer to this page to fix: http://askubuntu.com/questions/176121/dpkg-error-trying-to-overwrite-file-which-is-also-in
+   + sudo apt-get install vim
+   + add "export PYTHONPATH=/usr/local/lib/python2.7/dist-packages" to ~/.bashrc file
+ - download and install SDRPortal
+   + cd ~/repos
+   + git clone https://github.com/bpkempke/SDRPortal.git sdrportal
+   + cd sdrportal
+   + mkdir build
+   + cd build
+   + cmake ../
+   + make
+   + sudo make install
+   + cd ~/repos/sdrportal/gr-sdrp
+   + mkdir build
+   + cd build
+   + cmake ../
+   + make
+   + sudo make install
+ - download DSSDRFlow
+   + cd ~/repos/
+   + git clone https://github.com/bpkempke/DSSDRFlow.git
+ - copy B200 image to images directory
+   + sudo cp ~/repos/DSSDRFlow/fpga/usrp_b200_dssdr.bin /usr/local/share/uhd/images
+ - link in everything
+   + sudo ldconfig
+ - install custom UHD build
+   + cd ~/repos/
+   + git clone https://github.com/bpkempke/uhd.git uhd-dssdr
+   + cd uhd-dssdr
+   + git checkout dssdr
+   + cd host
+   + mkdir build
+   + cd build
+   + cmake ../
+   + make
+   + sudo make install
